@@ -1,0 +1,3 @@
+﻿global using CommonBasicLibraries.AdvancedGeneralFunctionsAndProcesses.BuildHooks;
+global using cc1 = CommonBasicLibraries.AdvancedGeneralFunctionsAndProcesses.Misc.SimpleCommandLineHelpers;
+global using LearningSolutionTool;
