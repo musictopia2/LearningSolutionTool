@@ -1,3 +1,5 @@
 ﻿global using CommonBasicLibraries.AdvancedGeneralFunctionsAndProcesses.BuildHooks;
 global using cc1 = CommonBasicLibraries.AdvancedGeneralFunctionsAndProcesses.Misc.SimpleCommandLineHelpers;
 global using LearningSolutionTool;
+global using CommonBasicLibraries.CollectionClasses;
+global using System.Xml.Linq;

@@ -11,22 +11,27 @@ internal static class CustomFactory
             Environment.Exit(1);
         }
         EnumCustomCommand command = EnumCustomCommand.FromName(temp, true);
-        temp = cc1.GetValue("ExerciseCount");
-        if (string.IsNullOrWhiteSpace(temp))
+        int exerciseCount = 0;
+        if (command == EnumCustomCommand.Lesson)
         {
-            Console.WriteLine("ExerciseCount is required.");
-            Environment.Exit(1);
+            temp = cc1.GetValue("ExerciseCount");
+            if (string.IsNullOrWhiteSpace(temp))
+            {
+                Console.WriteLine("ExerciseCount is required.");
+                Environment.Exit(1);
+            }
+            if (int.TryParse(temp, out exerciseCount) == false)
+            {
+                Console.WriteLine("ExerciseCount must be a valid integer.");
+                Environment.Exit(1);
+            }
+            if (exerciseCount <= 0)
+            {
+                Console.WriteLine("ExerciseCount must be a positive integer.");
+                Environment.Exit(1);
+            }
         }
-        if (int.TryParse(temp, out int exerciseCount) == false)
-        {
-            Console.WriteLine("ExerciseCount must be a valid integer.");
-            Environment.Exit(1);
-        }
-        if (exerciseCount <= 0)
-        {
-            Console.WriteLine("ExerciseCount must be a positive integer.");
-            Environment.Exit(1);
-        }
+        
         return new(command, exerciseCount);
     }
 }
