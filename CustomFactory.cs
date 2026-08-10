@@ -3,6 +3,7 @@ internal static class CustomFactory
 {
     public static CustomArgs CreateCustomArgs(string[] args)
     {
+        
         string temp = cc1.GetValue("Command"); //must be done this way.
         if (string.IsNullOrWhiteSpace(temp))
         {

@@ -1,2 +1,1 @@
-﻿
-await SolutionHookRunner.RunAsync<CustomArgs>(args, CustomFactory.CreateCustomArgs, CustomClass.RunAsync);
+﻿await SolutionHookRunner.RunAsync<CustomArgs>(args, CustomFactory.CreateCustomArgs, CustomClass.RunAsync);
