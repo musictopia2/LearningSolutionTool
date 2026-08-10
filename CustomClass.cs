@@ -48,14 +48,16 @@ internal static class CustomClass
         
         if (custom.Command == EnumCustomCommand.Lesson)
         {
-            await ProcessLessonAsync(testPath, libraryPath, custom.ExerciseCount);
             //do section part alone before running this test again.
-            await ProcessSectionAsync(testPath, libraryPath, custom.ExerciseCount); //implies you need the first lesson now.
+            await ProcessSectionAsync(testPath, libraryPath, custom.ExerciseCount); 
             return;
         }
         if (custom.Command == EnumCustomCommand.Section)
         {
             await ProcessSectionAsync(testPath, libraryPath, custom.ExerciseCount);
+            //implies you need the first lesson now.
+            await ProcessLessonAsync(testPath, libraryPath, custom.ExerciseCount);
+
             return;
         }
         Console.WriteLine("No command");
