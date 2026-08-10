@@ -62,9 +62,9 @@ internal static class CustomClass
         Console.WriteLine("No command");
         Environment.Exit(1);
     }
-    private static async Task ProcessLessonAsync(string testPath, string libraryPath, int lessonCount)
+    private static async Task ProcessLessonAsync(string testPath, string libraryPath, int exerciseCount)
     {
-        Console.WriteLine($"Processing lesson for test path of {testPath}, library path of {libraryPath} and has {lessonCount} lessons");
+        //Console.WriteLine($"Processing lesson for test path of {testPath}, library path of {libraryPath} and has {exerciseCount} exercises");
 
         BasicList<string> firstTest = await ff1.DirectoryListAsync(testPath);
         BasicList<string> sectionTests = firstTest.Select(ff1.FileName).ToBasicList();
@@ -115,12 +115,64 @@ internal static class CustomClass
             Environment.Exit(1);
             return;
         }
-        Console.WriteLine(nextTestLesson);
+        //Console.WriteLine(nextTestLesson);
         string newTestLessonPath = Path.Combine(testPath, lastTest);
-        string newLibraryLessonPath = Path.Combine(testPath, lastTest);
-        Console.WriteLine(newTestLessonPath);
-        Console.WriteLine(newLibraryLessonPath);
+        string newLibraryLessonPath = Path.Combine(libraryPath, lastTest);
+        //Console.WriteLine(testPath);
+        //Console.WriteLine(libraryPath);
+
+        string libraryName = ff1.FileName(libraryPath);
+        string testName = ff1.FileName(testPath);
+       
+
+        Console.Write("Enter New Lesson Name: ");
+        string newLessonName = Console.ReadLine()!;
+
+
+
+
+        await CreateNewLessonLibraryAsync(libraryName, nextTestLesson, lastLibrary, newLibraryLessonPath, newLessonName, exerciseCount);
+        await CreateNewLessonTestsAsync(testName, nextTestLesson, lastTest, newTestLessonPath, newLessonName);
     }
+    private static async Task CreateNewLessonLibraryAsync(string projectName, string nextNumber, string currentSection, string libraryBasePath, string lessonName, int exerciseCount)
+    {
+        string realName = $"Lesson{nextNumber}{lessonName}";
+        string newPath = Path.Combine(libraryBasePath, realName);
+        await ff1.CreateFolderAsync(newPath);
+        await exerciseCount.TimesAsync(async x =>
+        {
+            string newItem = x.ToString("D2"); //for now, use this until i find a better way to handle this.
+            string exercisePath = Path.Combine(newPath, $"Exercise{newItem}");
+            await ff1.CreateFolderAsync(exercisePath);
+            //namespace CSharpPracticeLibrary.Section01HelloWorld.Lesson01ConsolePrinting.Exercise01;
+            string text = $$"""
+            namespace {{projectName}}.{{currentSection}}.{realName};
+            public static class MainClass
+            {
+            
+            }
+            """;
+            string finalPath = Path.Combine(exercisePath, "MainClass.cs");
+            await ff1.WriteAllTextAsync(finalPath, text);
+        });
+    }
+    private static async Task CreateNewLessonTestsAsync(string projectName, string nextNumber, string currentSection, string testBasePath, string lessonName)
+    {
+        string realName = $"Lesson{nextNumber}{lessonName}";
+        string newPath = Path.Combine(testBasePath, realName);
+        await ff1.CreateFolderAsync(newPath);
+        string text = $$"""
+            namespace {{projectName}}.{{currentSection}}.{realName};
+            public class ExercisesClass
+            {
+            
+            }
+            """;
+        string finalPath = Path.Combine(newPath, "ExercisesClass.cs");
+        await ff1.WriteAllTextAsync(finalPath, text);
+    }
+
+
     private static async Task ProcessSectionAsync(string testPath, string libraryPath, int lessonCount)
     {
         //Console.WriteLine($"Processing new section for {testPath}, library path of {libraryPath}");
@@ -153,7 +205,7 @@ internal static class CustomClass
             return;
         }
         //Console.WriteLine($"The next test section detected was {nextTest} and next library section detected was {nextLibrary}");
-        Console.Write("Enter New Section:  ");
+        Console.Write("Enter New Section Name:  ");
         string newSection = Console.ReadLine()!;
         string newName = $"Section{nextLibrary}{newSection}";
         string latestLibrary = Path.Combine(libraryPath, newName);
@@ -162,7 +214,6 @@ internal static class CustomClass
 
         await ff1.CreateFolderAsync(latestLibrary);
         await ff1.CreateFolderAsync(latestTest);
-        Console.WriteLine("Created the expected folders.  Check to make sure it worked");
 
 
     }
