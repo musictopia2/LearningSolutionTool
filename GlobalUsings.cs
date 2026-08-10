@@ -3,3 +3,4 @@ global using cc1 = CommonBasicLibraries.AdvancedGeneralFunctionsAndProcesses.Mis
 global using LearningSolutionTool;
 global using CommonBasicLibraries.CollectionClasses;
 global using System.Xml.Linq;
+global using ff1 = CommonBasicLibraries.AdvancedGeneralFunctionsAndProcesses.FileFunctions.FileFunctions;

@@ -1,5 +1,4 @@
-﻿
-namespace LearningSolutionTool;
+﻿namespace LearningSolutionTool;
 internal static class CustomClass
 {
     public static async Task RunAsync(SolutionHookArgs solution, CustomArgs custom)
@@ -11,27 +10,32 @@ internal static class CustomClass
             Environment.Exit(1);
             return;
         }
-        if (solution.SolutionFileName.EndsWith("Solution") == false)
+        if (solution.SolutionFileName.EndsWith("Solution.slnx") == false)
         {
             Console.WriteLine("Requires this project to end with Solution");
             Environment.Exit(1);
             return;
         }
-        string projectName = solution.SolutionFileName.Replace("Solution", "");
+        string projectName = solution.SolutionFileName.Replace("Solution.slnx", "");
         BasicList<string> projects = ProjectsInSolution(solution);
         if (projects.Count < 2)
         {
             Console.WriteLine("Requires at least 2 projects in solution in order to do practice because needs at least a library and a test");
             Environment.Exit(1);
         }
-        
-        string? testPath = projects.SingleOrDefault(x => x.EndsWith("Tests") && x.StartsWith(projectName));
+
+        string? testPath = projects.SingleOrDefault(x =>
+    Path.GetFileName(x) == $"{projectName}Tests");
+
+        string? libraryPath = projects.SingleOrDefault(x =>
+            Path.GetFileName(x) == $"{projectName}Library");
+
+
         if (string.IsNullOrWhiteSpace(testPath))
         {
             Console.WriteLine("Requires one unit test project with same name as solution name");
             Environment.Exit(1);
         }
-        string? libraryPath = projects.SingleOrDefault(x => x.EndsWith("Library") && x.StartsWith(projectName));
         if (string.IsNullOrWhiteSpace(libraryPath))
         {
             Console.WriteLine("Requires one library path with same name as solution name");
@@ -76,6 +80,7 @@ internal static class CustomClass
 
             if (string.IsNullOrWhiteSpace(projectPath))
             {
+                Console.WriteLine("blank project path");
                 return [];
             }
 
@@ -83,16 +88,19 @@ internal static class CustomClass
 
             if (string.IsNullOrWhiteSpace(directory))
             {
+                Console.WriteLine($"No directory for {projectPath}");
                 return [];
             }
 
+            string finalPath = Path.Combine(solution.SolutionDir, projectPath);
             // This tool only supports projects directly below the solution.
-            if (Path.GetDirectoryName(directory) is not null)
+            if (ff1.FileExists(finalPath) == false)
             {
+                Console.WriteLine($"Only supports directly below. The final path was {finalPath}");
                 return [];
             }
-
-            output.Add(directory);
+            string fins = Path.GetDirectoryName(finalPath)!;
+            output.Add(fins);
         }
 
         return output;
