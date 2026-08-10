@@ -1,4 +1,7 @@
-﻿namespace LearningSolutionTool;
+﻿using CommonBasicLibraries.AdvancedGeneralFunctionsAndProcesses.BasicExtensions;
+using System.Net.Http.Headers;
+
+namespace LearningSolutionTool;
 internal static class CustomClass
 {
     public static async Task RunAsync(SolutionHookArgs solution, CustomArgs custom)
@@ -46,11 +49,13 @@ internal static class CustomClass
         if (custom.Command == EnumCustomCommand.Lesson)
         {
             await ProcessLessonAsync(testPath, libraryPath, custom.ExerciseCount);
+            //do section part alone before running this test again.
+            await ProcessSectionAsync(testPath, libraryPath, custom.ExerciseCount); //implies you need the first lesson now.
             return;
         }
         if (custom.Command == EnumCustomCommand.Section)
         {
-            await ProcessSectionAsync(testPath, libraryPath);
+            await ProcessSectionAsync(testPath, libraryPath, custom.ExerciseCount);
             return;
         }
         Console.WriteLine("No command");
@@ -59,11 +64,69 @@ internal static class CustomClass
     private static async Task ProcessLessonAsync(string testPath, string libraryPath, int lessonCount)
     {
         Console.WriteLine($"Processing lesson for test path of {testPath}, library path of {libraryPath} and has {lessonCount} lessons");
+
+
+
+
+
     }
-    private static async Task ProcessSectionAsync(string testPath, string libraryPath)
+    private static async Task ProcessSectionAsync(string testPath, string libraryPath, int lessonCount)
     {
-        Console.WriteLine($"Processing new section for {testPath}, library path of {libraryPath}");
+        //Console.WriteLine($"Processing new section for {testPath}, library path of {libraryPath}");
+
+        BasicList<string> firsts = await ff1.DirectoryListAsync(testPath);
+        BasicList<string> sectionTests = firsts.Select(ff1.FileName).ToBasicList();
+        sectionTests.RemoveAllAndObtain(x => x.StartsWith("Section") == false);
+
+        firsts = await ff1.DirectoryListAsync(libraryPath);
+        BasicList<string> sectionLibrary = firsts.Select(ff1.FileName).ToBasicList();
+        sectionLibrary.RemoveAllAndObtain(x => x.StartsWith("Section") == false);
+        if (sectionLibrary.Count != sectionTests.Count)
+        {
+            Console.WriteLine($"Test Path Of {testPath} had {sectionTests.Count} and library path of {libraryPath} had {sectionLibrary.Count} which does not reconcile");
+            Environment.Exit(1);
+            return;
+        }
+        string lastTest = sectionTests.Last();
+        string lastLibrary = sectionLibrary.Last();
+
+
+
+        string nextTest = GetNextSection(lastTest);
+        string nextLibrary = GetNextSection(lastLibrary);
+
+        if (nextTest != nextLibrary)
+        {
+            Console.WriteLine($"The next test of {nextTest} does not match {nextLibrary}.  the last test was {lastTest} and last library was {lastLibrary}");
+            Environment.Exit(1);
+            return;
+        }
+        //Console.WriteLine($"The next test section detected was {nextTest} and next library section detected was {nextLibrary}");
+        Console.Write("Enter New Section:  ");
+        string newSection = Console.ReadLine()!;
+        string newName = $"Section{nextLibrary}{newSection}";
+        string latestLibrary = Path.Combine(libraryPath, newName);
+        string latestTest = Path.Combine(testPath, newName);
+        //Console.WriteLine($"The New Name Will {newName} and the library path will be {latestLibrary} and the test path will be {latestTest}");
+
+        await ff1.CreateFolderAsync(latestLibrary);
+        await ff1.CreateFolderAsync(latestTest);
+        Console.WriteLine("Created the expected folders.  Check to make sure it worked");
+
+
     }
+
+    private static string GetNextSection(string directoryName)
+    {
+        const int startIndex = 7; // "Section".Length
+        const int numberLength = 2;
+
+        string numberText = directoryName.Substring(startIndex, numberLength);
+        int nextSection = int.Parse(numberText) + 1;
+
+        return nextSection.ToString("D2");
+    }
+
     private static BasicList<string> ProjectsInSolution(SolutionHookArgs solution)
     {
         string path = Path.Combine(
