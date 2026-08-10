@@ -48,8 +48,7 @@ internal static class CustomClass
         
         if (custom.Command == EnumCustomCommand.Lesson)
         {
-            //do section part alone before running this test again.
-            await ProcessSectionAsync(testPath, libraryPath, custom.ExerciseCount); 
+            await ProcessLessonAsync(testPath, libraryPath, custom.ExerciseCount); 
             return;
         }
         if (custom.Command == EnumCustomCommand.Section)
@@ -67,10 +66,60 @@ internal static class CustomClass
     {
         Console.WriteLine($"Processing lesson for test path of {testPath}, library path of {libraryPath} and has {lessonCount} lessons");
 
+        BasicList<string> firstTest = await ff1.DirectoryListAsync(testPath);
+        BasicList<string> sectionTests = firstTest.Select(ff1.FileName).ToBasicList();
+        sectionTests.RemoveAllAndObtain(x => x.StartsWith("Section") == false);
 
+        BasicList<string> firstLibrary = await ff1.DirectoryListAsync(libraryPath);
+        BasicList<string> sectionLibrary = firstLibrary.Select(ff1.FileName).ToBasicList();
+        sectionLibrary.RemoveAllAndObtain(x => x.StartsWith("Section") == false);
 
+        string lastTest = sectionTests.Last();
+        string lastLibrary = sectionLibrary.Last();
 
+        string currentTest = GetCurrentSection(lastTest);
+        string currentLibrary = GetCurrentSection(lastLibrary);
 
+        if (currentTest != currentLibrary)
+        {
+            Console.WriteLine($"The current test of {currentTest} does not match {currentLibrary}.  the last test was {lastTest} and last library was {lastLibrary}");
+            Environment.Exit(1);
+            return;
+        }
+
+        currentTest = firstTest.Last();
+        currentLibrary =  firstLibrary.Last();
+        firstTest = await ff1.DirectoryListAsync(currentTest);
+        firstLibrary = await ff1.DirectoryListAsync(currentLibrary);
+        if (firstTest.Count != firstLibrary.Count)
+        {
+            Console.WriteLine($"Counts for lessons don't match.   Tests had {firstTest.Count} and library had {firstLibrary.Count}");
+            Environment.Exit(1);
+            return;
+        }
+        string? currentLibraryLesson = firstTest.LastOrDefault();
+        string? currentTestLesson = firstLibrary.LastOrDefault();
+        if (currentLibraryLesson is not null)
+        {
+            currentLibraryLesson = ff1.FileName(currentLibraryLesson);
+        }
+        if (currentTestLesson is not null)
+        {
+            currentTestLesson = ff1.FileName(currentTestLesson);
+        }
+        string nextLibraryLesson = GetNextLesson(currentTestLesson);
+        string nextTestLesson = GetNextLesson(currentLibraryLesson);
+        if (nextTestLesson != nextLibraryLesson)
+        {
+            Console.WriteLine($"Next test lesson of {nextTestLesson} does not match next library {nextLibraryLesson} ");
+            Environment.Exit(1);
+            return;
+        }
+        Console.WriteLine(nextTestLesson);
+        string newTestLessonPath = Path.Combine(testPath, lastTest);
+        string newLibraryLessonPath = Path.Combine(testPath, lastTest);
+        Console.WriteLine(newTestLessonPath);
+        Console.WriteLine(newLibraryLessonPath);
     }
     private static async Task ProcessSectionAsync(string testPath, string libraryPath, int lessonCount)
     {
@@ -89,8 +138,8 @@ internal static class CustomClass
             Environment.Exit(1);
             return;
         }
-        string lastTest = sectionTests.Last();
-        string lastLibrary = sectionLibrary.Last();
+        string? lastTest = sectionTests.LastOrDefault();
+        string? lastLibrary = sectionLibrary.LastOrDefault();
 
 
 
@@ -118,8 +167,41 @@ internal static class CustomClass
 
     }
 
-    private static string GetNextSection(string directoryName)
+    private static string GetCurrentSection(string directoryName)
     {
+        if (directoryName is null)
+        {
+            return "01";
+        }
+        const int startIndex = 7; // "Section".Length
+        const int numberLength = 2;
+
+        string numberText = directoryName.Substring(startIndex, numberLength);
+        int currentSection = int.Parse(numberText);
+
+        return currentSection.ToString("D2");
+    }
+
+    private static string GetNextLesson(string? directoryName)
+    {
+        if (directoryName is null)
+        {
+            return "01";
+        }
+        const int startIndex = 6; // "Lesson".Length
+        const int numberLength = 2;
+
+        string numberText = directoryName.Substring(startIndex, numberLength);
+        int nextSection = int.Parse(numberText) + 1;
+
+        return nextSection.ToString("D2");
+    }
+    private static string GetNextSection(string? directoryName)
+    {
+        if (directoryName is null)
+        {
+            return "01";
+        }
         const int startIndex = 7; // "Section".Length
         const int numberLength = 2;
 
