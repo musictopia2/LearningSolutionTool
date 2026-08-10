@@ -146,7 +146,7 @@ internal static class CustomClass
             await ff1.CreateFolderAsync(exercisePath);
             //namespace CSharpPracticeLibrary.Section01HelloWorld.Lesson01ConsolePrinting.Exercise01;
             string text = $$"""
-            namespace {{projectName}}.{{currentSection}}.{realName};
+            namespace {{projectName}}.{{currentSection}}.{{realName}};
             public static class MainClass
             {
             
