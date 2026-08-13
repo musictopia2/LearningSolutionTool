@@ -163,6 +163,7 @@ internal static class CustomClass
         await ff1.CreateFolderAsync(newPath);
         string text = $$"""
             namespace {{projectName}}.{{currentSection}}.{{realName}};
+            [Trait("Section", "{{currentSection}}")]
             public class ExercisesClass
             {
             
