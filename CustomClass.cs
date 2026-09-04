@@ -1,7 +1,4 @@
-﻿using CommonBasicLibraries.AdvancedGeneralFunctionsAndProcesses.BasicExtensions;
-using System.Net.Http.Headers;
-
-namespace LearningSolutionTool;
+﻿namespace LearningSolutionTool;
 internal static class CustomClass
 {
     public static async Task RunAsync(SolutionHookArgs solution, CustomArgs custom)
@@ -28,7 +25,7 @@ internal static class CustomClass
         }
 
         string? testPath = projects.SingleOrDefault(x =>
-    Path.GetFileName(x) == $"{projectName}Tests");
+            Path.GetFileName(x) == $"{projectName}Tests");
 
         string? libraryPath = projects.SingleOrDefault(x =>
             Path.GetFileName(x) == $"{projectName}Library");
@@ -45,10 +42,10 @@ internal static class CustomClass
             Environment.Exit(1);
         }
 
-        
+
         if (custom.Command == EnumCustomCommand.Lesson)
         {
-            await ProcessLessonAsync(testPath, libraryPath, custom.ExerciseCount); 
+            await ProcessLessonAsync(testPath, libraryPath, custom.ExerciseCount);
             return;
         }
         if (custom.Command == EnumCustomCommand.Section)
@@ -88,7 +85,7 @@ internal static class CustomClass
         }
 
         currentTest = firstTest.Last();
-        currentLibrary =  firstLibrary.Last();
+        currentLibrary = firstLibrary.Last();
         firstTest = await ff1.DirectoryListAsync(currentTest);
         firstLibrary = await ff1.DirectoryListAsync(currentLibrary);
         if (firstTest.Count != firstLibrary.Count)
@@ -123,7 +120,7 @@ internal static class CustomClass
 
         string libraryName = ff1.FileName(libraryPath);
         string testName = ff1.FileName(testPath);
-       
+
 
         Console.Write("Enter New Lesson Name: ");
         string newLessonName = Console.ReadLine()!;
@@ -146,6 +143,11 @@ internal static class CustomClass
             await ff1.CreateFolderAsync(exercisePath);
             //namespace CSharpPracticeLibrary.Section01HelloWorld.Lesson01ConsolePrinting.Exercise01;
             string text = $$"""
+            /*
+            Enter the requirements for this exercise here.
+
+            */
+
             namespace {{projectName}}.{{currentSection}}.{{realName}}.Exercise{{newItem}};
             public static class MainClass
             {
