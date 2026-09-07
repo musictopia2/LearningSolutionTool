@@ -95,8 +95,8 @@ internal static class CustomClass
             string exercisePath = Path.Combine(newPath, $"Exercise{newItem}");
             await ff1.CreateFolderAsync(exercisePath);
             string text = $$"""
-            namespace {{projectName}}.{{nextIntegration}}.{{x}};
-            [Trait("Integration", "{{nextIntegration}}{{newItem}}")]
+            namespace {{projectName}}.{{nextIntegration}}.Exercise{{newItem}};
+            [Trait("Integration", "{{nextIntegration}}Exercise{{newItem}}")]
             public class TestClass
             {
             
