@@ -5,6 +5,7 @@ public readonly partial record struct EnumCustomCommand
     {
         None,
         Section,
-        Lesson
+        Lesson,
+        Integration
     }
 }

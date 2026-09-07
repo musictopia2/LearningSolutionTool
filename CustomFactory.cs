@@ -1,8 +1,14 @@
 ﻿namespace LearningSolutionTool;
 internal static class CustomFactory
 {
+    //the parts behing the scenes already does the args anyways.
     public static CustomArgs CreateCustomArgs(string[] args)
     {
+        if (args is null)
+        {
+            Console.WriteLine("No arguments");
+            Environment.Exit(1);
+        }
         string temp = cc1.GetValue("Command"); //must be done this way.
         if (string.IsNullOrWhiteSpace(temp))
         {
@@ -10,14 +16,13 @@ internal static class CustomFactory
             Environment.Exit(1);
         }
         EnumCustomCommand command = EnumCustomCommand.FromName(temp, true);
-        int exerciseCount = 0;
         temp = cc1.GetValue("ExerciseCount");
         if (string.IsNullOrWhiteSpace(temp))
         {
             Console.WriteLine("ExerciseCount is required.");
             Environment.Exit(1);
         }
-        if (int.TryParse(temp, out exerciseCount) == false)
+        if (int.TryParse(temp, out int exerciseCount) == false)
         {
             Console.WriteLine("ExerciseCount must be a valid integer.");
             Environment.Exit(1);

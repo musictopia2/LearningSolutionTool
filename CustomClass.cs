@@ -50,15 +50,89 @@ internal static class CustomClass
         }
         if (custom.Command == EnumCustomCommand.Section)
         {
-            await ProcessSectionAsync(testPath, libraryPath, custom.ExerciseCount);
+            await ProcessSectionAsync(testPath, libraryPath);
             //implies you need the first lesson now.
             await ProcessLessonAsync(testPath, libraryPath, custom.ExerciseCount);
 
             return;
         }
+        if (custom.Command == EnumCustomCommand.Integration)
+        {
+            await ProcessIntegrationAsync(testPath, libraryPath, custom.ExerciseCount);
+        }
         Console.WriteLine("No command");
         Environment.Exit(1);
     }
+    private static async Task ProcessIntegrationAsync(string testPath, string libraryPath, int exerciseCount)
+    {
+        BasicList<string> firstTest = await ff1.DirectoryListAsync(testPath);
+        BasicList<string> sectionTests = firstTest.Select(ff1.FileName).ToBasicList();
+        sectionTests.RemoveAllAndObtain(x => x.StartsWith("Integration") == false);
+
+        BasicList<string> firstLibrary = await ff1.DirectoryListAsync(libraryPath);
+        BasicList<string> sectionLibrary = firstLibrary.Select(ff1.FileName).ToBasicList();
+        sectionLibrary.RemoveAllAndObtain(x => x.StartsWith("Integration") == false);
+
+        string libraryName = ff1.FileName(libraryPath);
+        string testName = ff1.FileName(testPath);
+
+        if (sectionTests.Count > 0 || sectionLibrary.Count > 0)
+        {
+            Console.WriteLine("Integration generation beyond the first milestone is not supported yet.");
+            Environment.Exit(1);
+        }
+        string newName = "Integration01Sections01To06"; //for the first milstone, it will be hard coded sections 1 through 6.
+        await CreateIntegrationTestAsync(testPath, testName, newName, exerciseCount);
+        await CreateIntegrationLibraryAsync(libraryPath, libraryName, newName, exerciseCount);
+    }
+    private static async Task CreateIntegrationTestAsync(string testBasePath, string projectName, string nextIntegration, int exerciseCount)
+    {
+        string newPath = Path.Combine(testBasePath, nextIntegration);
+        await ff1.CreateFolderAsync(newPath);
+        await exerciseCount.TimesAsync(async x =>
+        {
+            string newItem = x.ToString("D2"); //for now, use this until i find a better way to handle this.
+            string exercisePath = Path.Combine(newPath, $"Exercise{newItem}");
+            await ff1.CreateFolderAsync(exercisePath);
+            string text = $$"""
+            namespace {{projectName}}.{{nextIntegration}}.{{x}};
+            [Trait("Integration", "{{nextIntegration}}{{newItem}}")]
+            public class TestClass
+            {
+            
+            }
+            """;
+            string finalPath = Path.Combine(exercisePath, "TestClass.cs");
+            await ff1.WriteAllTextAsync(finalPath, text);
+        });
+    }
+    private static async Task CreateIntegrationLibraryAsync(string libraryBasePath, string projectName, string nextIntegration, int exerciseCount)
+    {
+        string newPath = Path.Combine(libraryBasePath, nextIntegration);
+        await ff1.CreateFolderAsync(newPath);
+        await exerciseCount.TimesAsync(async x =>
+        {
+            string newItem = x.ToString("D2"); //for now, use this until i find a better way to handle this.
+            string exercisePath = Path.Combine(newPath, $"Exercise{newItem}");
+            await ff1.CreateFolderAsync(exercisePath);
+            //namespace CSharpPracticeLibrary.Section01HelloWorld.Lesson01ConsolePrinting.Exercise01;
+            string text = $$"""
+            /*
+            Enter the requirements for this exercise here.
+
+            */
+
+            namespace {{projectName}}.{{nextIntegration}}.Exercise{{newItem}};
+            public static class MainClass
+            {
+            
+            }
+            """;
+            string finalPath = Path.Combine(exercisePath, "MainClass.cs");
+            await ff1.WriteAllTextAsync(finalPath, text);
+        });
+    }
+
     private static async Task ProcessLessonAsync(string testPath, string libraryPath, int exerciseCount)
     {
         //Console.WriteLine($"Processing lesson for test path of {testPath}, library path of {libraryPath} and has {exerciseCount} exercises");
@@ -71,9 +145,13 @@ internal static class CustomClass
         BasicList<string> sectionLibrary = firstLibrary.Select(ff1.FileName).ToBasicList();
         sectionLibrary.RemoveAllAndObtain(x => x.StartsWith("Section") == false);
 
-        string lastTest = sectionTests.Last();
-        string lastLibrary = sectionLibrary.Last();
-
+        string? lastTest = sectionTests.LastOrDefault();
+        string? lastLibrary = sectionLibrary.LastOrDefault();
+        if (lastTest is null || lastLibrary is null)
+        {
+            Console.WriteLine("There was no last test.   Has to rethink possibly");
+            return;
+        }
         string currentTest = GetCurrentSection(lastTest);
         string currentLibrary = GetCurrentSection(lastLibrary);
 
@@ -176,7 +254,7 @@ internal static class CustomClass
     }
 
 
-    private static async Task ProcessSectionAsync(string testPath, string libraryPath, int lessonCount)
+    private static async Task ProcessSectionAsync(string testPath, string libraryPath)
     {
         //Console.WriteLine($"Processing new section for {testPath}, library path of {libraryPath}");
 
@@ -221,7 +299,7 @@ internal static class CustomClass
 
     }
 
-    private static string GetCurrentSection(string directoryName)
+    private static string GetCurrentSection(string? directoryName)
     {
         if (directoryName is null)
         {
