@@ -264,8 +264,10 @@ internal static class CustomClass
             string overrideContent = "";
             string firstClass = "";
             string extraContent = "";
+            string starts = "";
             if (format == EnumFormat.Analyzer)
             {
+                starts = "[DiagnosticAnalyzer(LanguageNames.CSharp)]";
                 extraContent = """
                 public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
                 {
@@ -295,6 +297,7 @@ internal static class CustomClass
             */
 
             namespace {{projectName}}.{{currentSection}}.{{realName}}.Exercise{{newItem}};
+            {{starts}}
             public{{firstClass}} class MainClass{{overrideContent}}
             {
             {{extraContent}}
