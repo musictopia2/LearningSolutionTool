@@ -261,6 +261,7 @@ internal static class CustomClass
             string newItem = x.ToString("D2"); //for now, use this until i find a better way to handle this.
             string exercisePath = Path.Combine(newPath, $"Exercise{newItem}");
             await ff1.CreateFolderAsync(exercisePath);
+            string overrideContent = "";
 
             string extraContent = "";
             if (format == EnumFormat.Analyzer)
@@ -281,6 +282,7 @@ internal static class CustomClass
                     context.EnableConcurrentExecution();
                 }
                 """;
+                overrideContent = " : DiagnosticAnalyzer";
             }
             string text = $$"""
             /*
@@ -289,7 +291,7 @@ internal static class CustomClass
             */
 
             namespace {{projectName}}.{{currentSection}}.{{realName}}.Exercise{{newItem}};
-            public static class MainClass
+            public static class MainClass{{overrideContent}}
             {
             {{extraContent}}
             }
