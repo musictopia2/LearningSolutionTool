@@ -246,28 +246,35 @@ internal static class CustomClass
         return null;
     }
 
-    private static async Task CreateNewLessonLibraryAsync(string projectName, string nextNumber, string currentSection, string libraryBasePath, string lessonName, EnumFormat format, int exerciseCount)
+    private static async Task CreateNewLessonLibraryAsync(
+    string projectName,
+    string nextNumber,
+    string currentSection,
+    string libraryBasePath,
+    string lessonName,
+    EnumFormat format,
+    int exerciseCount)
     {
         string realName = $"Lesson{nextNumber}{lessonName}";
         string newPath = Path.Combine(libraryBasePath, realName);
         await ff1.CreateFolderAsync(newPath);
 
-        //here can go ahead and figure out format.
-
-
-
         await exerciseCount.TimesAsync(async x =>
         {
-            string newItem = x.ToString("D2"); //for now, use this until i find a better way to handle this.
+            string newItem = x.ToString("D2");
             string exercisePath = Path.Combine(newPath, $"Exercise{newItem}");
             await ff1.CreateFolderAsync(exercisePath);
+
             string overrideContent = "";
             string firstClass = "";
             string extraContent = "";
             string starts = "";
+
             if (format == EnumFormat.Analyzer)
             {
                 starts = "[DiagnosticAnalyzer(LanguageNames.CSharp)]";
+                overrideContent = " : DiagnosticAnalyzer";
+
                 extraContent = """
                 public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
                 {
@@ -283,26 +290,28 @@ internal static class CustomClass
 
                     context.EnableConcurrentExecution();
                 }
-                """;
-                overrideContent = " : DiagnosticAnalyzer";
+            """;
             }
             else if (format == EnumFormat.Main)
             {
                 firstClass = " static ";
             }
+
             string text = $$"""
-            /*
-            Enter the requirements for this exercise here.
+        /*
+        Enter the requirements for this exercise here.
 
-            */
+        */
 
-            namespace {{projectName}}.{{currentSection}}.{{realName}}.Exercise{{newItem}};
-            {{starts}}
-            public{{firstClass}} class MainClass{{overrideContent}}
-            {
-            {{extraContent}}
-            }
-            """;
+        namespace {{projectName}}.{{currentSection}}.{{realName}}.Exercise{{newItem}};
+
+        {{starts}}
+        public{{firstClass}} class MainClass{{overrideContent}}
+        {
+        {{extraContent}}
+        }
+        """;
+
             string finalPath = Path.Combine(exercisePath, "MainClass.cs");
             await ff1.WriteAllTextAsync(finalPath, text);
         });
