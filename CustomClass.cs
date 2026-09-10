@@ -41,19 +41,32 @@ internal static class CustomClass
             Console.WriteLine("Requires one library path with same name as solution name");
             Environment.Exit(1);
         }
-
-
+        string practicePath = GetPracticeProjectPath(solution);
+        EnumFormat? format = await GetFormatAsync(practicePath);
+        if (format is null)
+        {
+            return;
+        }
+        if (format is EnumFormat.SourceGenerator)
+        {
+            Console.WriteLine("Source generators are not supported yet");
+            return;
+        }
+        if (format is EnumFormat.CodeFix)
+        {
+            Console.WriteLine("Code fixes are not supported yet");
+            return;
+        }
         if (custom.Command == EnumCustomCommand.Lesson)
         {
-            await ProcessLessonAsync(testPath, libraryPath, custom.ExerciseCount);
+            await ProcessLessonAsync(testPath, libraryPath, format.Value, custom.ExerciseCount);
             return;
         }
         if (custom.Command == EnumCustomCommand.Section)
         {
             await ProcessSectionAsync(testPath, libraryPath);
             //implies you need the first lesson now.
-            await ProcessLessonAsync(testPath, libraryPath, custom.ExerciseCount);
-
+            await ProcessLessonAsync(testPath, libraryPath, format.Value, custom.ExerciseCount);
             return;
         }
         if (custom.Command == EnumCustomCommand.Integration)
@@ -133,7 +146,7 @@ internal static class CustomClass
         });
     }
 
-    private static async Task ProcessLessonAsync(string testPath, string libraryPath, int exerciseCount)
+    private static async Task ProcessLessonAsync(string testPath, string libraryPath, EnumFormat format, int exerciseCount)
     {
         //Console.WriteLine($"Processing lesson for test path of {testPath}, library path of {libraryPath} and has {exerciseCount} exercises");
 
@@ -206,20 +219,69 @@ internal static class CustomClass
 
 
 
-        await CreateNewLessonLibraryAsync(libraryName, nextTestLesson, lastLibrary, newLibraryLessonPath, newLessonName, exerciseCount);
+        await CreateNewLessonLibraryAsync(libraryName, nextTestLesson, lastLibrary, newLibraryLessonPath, newLessonName, format, exerciseCount);
         await CreateNewLessonTestsAsync(testName, nextTestLesson, lastTest, newTestLessonPath, newLessonName);
     }
-    private static async Task CreateNewLessonLibraryAsync(string projectName, string nextNumber, string currentSection, string libraryBasePath, string lessonName, int exerciseCount)
+    private static async Task<EnumFormat?> GetFormatAsync(string practiceProjectTypePath)
+    {
+        if (ff1.FileExists(practiceProjectTypePath) == false)
+        {
+            return EnumFormat.Main;
+        }
+        string contents = await ff1.AllTextAsync(practiceProjectTypePath);
+        if (contents.Equals("analyzer", StringComparison.CurrentCultureIgnoreCase))
+        {
+            return EnumFormat.Analyzer;
+        }
+        if (contents.Equals("source generator", StringComparison.CurrentCultureIgnoreCase))
+        {
+            return EnumFormat.SourceGenerator;
+        }
+        if (contents.Equals("main", StringComparison.CurrentCultureIgnoreCase))
+        {
+            return EnumFormat.Main;
+        }
+        Console.WriteLine($"Unable to figure out the format from text {contents}");
+        Environment.Exit(1);
+        return null;
+    }
+
+    private static async Task CreateNewLessonLibraryAsync(string projectName, string nextNumber, string currentSection, string libraryBasePath, string lessonName, EnumFormat format, int exerciseCount)
     {
         string realName = $"Lesson{nextNumber}{lessonName}";
         string newPath = Path.Combine(libraryBasePath, realName);
         await ff1.CreateFolderAsync(newPath);
+
+        //here can go ahead and figure out format.
+
+
+
         await exerciseCount.TimesAsync(async x =>
         {
             string newItem = x.ToString("D2"); //for now, use this until i find a better way to handle this.
             string exercisePath = Path.Combine(newPath, $"Exercise{newItem}");
             await ff1.CreateFolderAsync(exercisePath);
-            //namespace CSharpPracticeLibrary.Section01HelloWorld.Lesson01ConsolePrinting.Exercise01;
+
+            string extraContent = "";
+            if (format == EnumFormat.Analyzer)
+            {
+                extraContent = """
+                public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
+                {
+                    get
+                    {
+                        return [];
+                    }
+                }
+                public override void Initialize(AnalysisContext context)
+                {
+                    context.ConfigureGeneratedCodeAnalysis(
+                        GeneratedCodeAnalysisFlags.None);
+
+                    context.EnableConcurrentExecution();
+                }
+                """;
+            }
             string text = $$"""
             /*
             Enter the requirements for this exercise here.
@@ -229,7 +291,7 @@ internal static class CustomClass
             namespace {{projectName}}.{{currentSection}}.{{realName}}.Exercise{{newItem}};
             public static class MainClass
             {
-            
+            {{extraContent}}
             }
             """;
             string finalPath = Path.Combine(exercisePath, "MainClass.cs");
@@ -342,7 +404,11 @@ internal static class CustomClass
 
         return nextSection.ToString("D2");
     }
-
+    private static string GetPracticeProjectPath(SolutionHookArgs solution)
+    {
+        string path = Path.Combine(solution.SolutionDir, "PracticeProjectType.txt");
+        return path;
+    }
     private static BasicList<string> ProjectsInSolution(SolutionHookArgs solution)
     {
         string path = Path.Combine(
