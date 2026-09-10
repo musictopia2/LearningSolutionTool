@@ -262,7 +262,7 @@ internal static class CustomClass
             string exercisePath = Path.Combine(newPath, $"Exercise{newItem}");
             await ff1.CreateFolderAsync(exercisePath);
             string overrideContent = "";
-
+            string firstClass = "";
             string extraContent = "";
             if (format == EnumFormat.Analyzer)
             {
@@ -284,6 +284,10 @@ internal static class CustomClass
                 """;
                 overrideContent = " : DiagnosticAnalyzer";
             }
+            else if (format == EnumFormat.Main)
+            {
+                firstClass = " static ";
+            }
             string text = $$"""
             /*
             Enter the requirements for this exercise here.
@@ -291,7 +295,7 @@ internal static class CustomClass
             */
 
             namespace {{projectName}}.{{currentSection}}.{{realName}}.Exercise{{newItem}};
-            public static class MainClass{{overrideContent}}
+            public{{firstClass}} class MainClass{{overrideContent}}
             {
             {{extraContent}}
             }
