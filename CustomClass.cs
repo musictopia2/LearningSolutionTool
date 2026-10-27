@@ -3,7 +3,6 @@ internal static class CustomClass
 {
     public static async Task RunAsync(SolutionHookArgs solution, CustomArgs custom)
     {
-
         if (solution.SolutionFileName.EndsWith("slnx") == false)
         {
             Console.WriteLine("Requires the new slnx format");
@@ -206,19 +205,10 @@ internal static class CustomClass
         //Console.WriteLine(nextTestLesson);
         string newTestLessonPath = Path.Combine(testPath, lastTest);
         string newLibraryLessonPath = Path.Combine(libraryPath, lastTest);
-        //Console.WriteLine(testPath);
-        //Console.WriteLine(libraryPath);
-
         string libraryName = ff1.FileName(libraryPath);
         string testName = ff1.FileName(testPath);
-
-
         Console.Write("Enter New Lesson Name: ");
         string newLessonName = Console.ReadLine()!;
-
-
-
-
         await CreateNewLessonLibraryAsync(libraryName, nextTestLesson, lastLibrary, newLibraryLessonPath, newLessonName, format, exerciseCount);
         await CreateNewLessonTestsAsync(testName, nextTestLesson, lastTest, newTestLessonPath, newLessonName);
     }
